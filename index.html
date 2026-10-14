@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boiling Water: Pressure, Altitude & the Open vs. Closed Container</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#060b1f;--bg2:#0c1433;--card:#111a3d;--cyan:#38e1ff;--heat:#ff8a3d;--text:#e6ecff;--muted:#9aa6cf}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:Inter,system-ui,sans-serif;background:radial-gradient(ellipse at top,#13205a 0%,var(--bg) 60%) fixed;color:var(--text);line-height:1.65;overflow-x:hidden}
+section{min-height:100vh;padding:7rem 1.5rem;display:flex;flex-direction:column;justify-content:center;align-items:center}
+.wrap{max-width:1100px;width:100%}
+h1{font-size:clamp(2.2rem,6vw,4.4rem);font-weight:800;line-height:1.1;text-align:center}
+h2{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;margin-bottom:1.2rem}
+h3{font-size:1.3rem;margin-bottom:.6rem}
+p{color:var(--muted);font-size:1.08rem;margin-bottom:1rem}
+.c{color:var(--cyan)}.h{color:var(--heat)}
+.mono{font-family:'JetBrains Mono',monospace}
+.kicker{font-size:.8rem;letter-spacing:.25em;text-transform:uppercase;color:var(--cyan);margin-bottom:.8rem}
+/* hero */
+#hero .t{animation:rise 1.2s cubic-bezier(.2,.8,.2,1) both}
+#hero .s{animation:rise 1.2s .3s cubic-bezier(.2,.8,.2,1) both;text-align:center;max-width:640px;margin:1.5rem auto 0;font-size:1.2rem}
+.hint{position:absolute;bottom:2rem;color:var(--muted);font-size:.85rem;text-align:center;animation:fade 1s 1s both}
+.hint span{display:block;font-size:1.5rem;animation:bob 1.6s infinite}
+@keyframes rise{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes bob{50%{transform:translateY(8px)}}
+.reveal{opacity:0;transform:translateY(40px);transition:opacity .9s,transform .9s cubic-bezier(.2,.8,.2,1)}
+.reveal.in{opacity:1;transform:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;align-items:center}
+@media(max-width:800px){.grid2{grid-template-columns:1fr}section{padding:5rem 1.2rem}}
+.card{background:linear-gradient(160deg,var(--card),var(--bg2));border:1px solid #1f2b5c;border-radius:20px;padding:2rem}
+/* pot */
+.stage{position:relative;height:300px;display:flex;justify-content:center;align-items:flex-end}
+.pot{position:relative;width:200px;height:140px;border:5px solid #8fa3d6;border-top:none;border-radius:0 0 30px 30px;overflow:hidden;background:linear-gradient(#1b6fb0,#0d3b78)}
+.pot.water-hot{background:linear-gradient(#2a8fd0,#c4501f 160%)}
+.lid{position:absolute;width:220px;height:14px;background:#8fa3d6;border-radius:8px 8px 2px 2px;bottom:140px}
+.lid::after{content:'';position:absolute;width:30px;height:10px;background:#8fa3d6;border-radius:6px;left:95px;top:-9px}
+.flame{position:absolute;bottom:-26px;width:140px;height:22px;display:flex;justify-content:space-around}
+.flame i{width:14px;height:22px;background:radial-gradient(circle at 50% 80%,#ffd27a,var(--heat) 50%,transparent 70%);border-radius:50% 50% 40% 40%;animation:flick .3s infinite alternate}
+.flame i:nth-child(2n){animation-delay:.15s}
+@keyframes flick{to{transform:scaleY(1.3) translateY(-2px);opacity:.8}}
+.bubble{position:absolute;bottom:-10px;border-radius:50%;border:1.5px solid rgba(255,255,255,.7);background:rgba(255,255,255,.15);animation:up linear forwards}
+@keyframes up{to{transform:translateY(-160px);opacity:.2}}
+.steam{position:absolute;width:18px;height:18px;border-radius:50%;background:rgba(220,235,255,.35);filter:blur(4px);animation:steam 2.6s ease-out forwards}
+@keyframes steam{to{transform:translate(var(--dx),-170px) scale(2.5);opacity:0}}
+.mol{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--cyan)}
+/* gauges */
+.readouts{display:flex;gap:1rem;justify-content:center;margin-top:1.5rem;flex-wrap:wrap}
+.gauge{width:120px;text-align:center}
+.dial{width:110px;height:60px;border-radius:110px 110px 0 0;border:6px solid #2a3870;border-bottom:none;position:relative;margin:auto;overflow:hidden}
+.needle{position:absolute;width:3px;height:48px;background:var(--heat);left:calc(50% - 1.5px);bottom:0;transform-origin:bottom;transform:rotate(-80deg);transition:transform .4s}
+.val{font-family:'JetBrains Mono',monospace;font-size:1.1rem;margin-top:.4rem}
+.lbl{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.warn{border-left:3px solid var(--heat);padding:.8rem 1rem;background:rgba(255,138,61,.08);border-radius:6px;margin-top:1rem}
+button{font:inherit;background:transparent;color:var(--cyan);border:1px solid var(--cyan);padding:.5rem 1.1rem;border-radius:999px;cursor:pointer;margin-top:1rem}
+button:hover{background:rgba(56,225,255,.1)}
+/* altitude */
+.mtn{position:relative;height:340px;width:100%}
+.mtn svg{width:100%;height:100%}
+.potdot{position:absolute;width:34px;height:24px;transition:left .6s,bottom .6s;transform:translateX(-50%)}
+.potdot div{width:34px;height:20px;background:#8fa3d6;border-radius:0 0 8px 8px}
+input[type=range]{width:100%;accent-color:var(--cyan);margin:1.5rem 0 .5rem}
+.stops{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted)}
+.big{font-size:clamp(2.4rem,6vw,3.6rem);font-weight:800;font-family:'JetBrains Mono',monospace}
+table{width:100%;border-collapse:collapse;margin-top:1.5rem;font-size:.95rem}
+td,th{padding:.55rem;border-bottom:1px solid #1f2b5c;text-align:left}
+th{color:var(--cyan);font-weight:600}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1.4rem;margin-top:2rem}
+.cards .card{padding:1.6rem}
+.emoji{font-size:2rem;margin-bottom:.6rem}
+blockquote{font-size:clamp(1.6rem,3.6vw,2.5rem);font-weight:800;text-align:center;line-height:1.3;max-width:900px;margin:auto}
+blockquote em{font-style:normal;background:linear-gradient(90deg,var(--heat),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+footer{text-align:center;color:var(--muted);padding:2rem;font-size:.85rem}
+</style>
+</head>
+<body>
+
+<section id="hero" style="position:relative">
+  <div class="wrap">
+    <h1 class="t">Boiling Water:<br><span class="h">Pressure</span>, <span class="c">Altitude</span> & the Open vs. Closed Container</h1>
+    <p class="s">Why water doesn't always boil at 100°C — and what a pressure cooker, a mountain, and an airplane have to do with it.</p>
+  </div>
+  <div class="hint">Scroll to begin<span>↓</span></div>
+</section>
+
+<section id="what">
+  <div class="wrap grid2">
+    <div class="reveal">
+      <div class="kicker">01 · The basics</div>
+      <h2>What is boiling?</h2>
+      <p>Water molecules are <b class="c">never still</b>. They jiggle, bump and bounce off each other all the time.</p>
+      <p><b class="h">Temperature</b> is just a measure of how fast they're moving on average. Heat the pot, and they speed up.</p>
+      <p><b>Boiling</b> happens when molecules gain enough energy to break free from their neighbours and escape as gas — <b>steam</b>. Bubbles of vapour form inside the water, rise, and burst at the surface.</p>
+    </div>
+    <div class="card reveal">
+      <div class="stage" id="stage1">
+        <div class="pot water-hot" id="pot1"></div>
+        <div class="flame"><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <p style="text-align:center;margin-top:2rem;font-size:.9rem">Rising bubbles = water turning into vapour. Wisps above = steam escaping.</p>
+    </div>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <div class="reveal" style="text-align:center;max-width:720px;margin:0 auto 3rem">
+      <div class="kicker">02 · Open vs. closed</div>
+      <h2>Where does the steam go?</h2>
+      <p>Boiling is a tug-of-war: molecular energy pushing out vs. pressure pushing down. Change the pressure, and you change the boiling point.</p>
+    </div>
+    <div class="grid2" style="align-items:stretch">
+      <div class="card reveal">
+        <h3 class="c">Open pot</h3>
+        <div class="stage" id="stage2" style="height:240px">
+          <div class="pot" id="pot2"></div>
+          <div class="flame"><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="readouts">
+          <div class="gauge"><div class="dial"><div class="needle" style="transform:rotate(-40deg)"></div></div><div class="val">14.7 psi</div><div class="lbl">Pressure</div></div>
+          <div class="gauge"><div class="dial"><div class="needle" style="transform:rotate(0deg)"></div></div><div class="val">100°C</div><div class="lbl">Max temp</div></div>
+        </div>
+        <p style="margin-top:1.2rem">Steam escapes freely, so pressure stays at <b>atmospheric</b>. At sea level the water boils at <b>100°C (212°F)</b> — and stays there no matter how high you turn the flame. Extra heat just makes more steam.</p>
+      </div>
+      <div class="card reveal">
+        <h3 class="h">Sealed pot</h3>
+        <div class="stage" id="stage3" style="height:240px">
+          <div class="lid"></div>
+          <div class="pot water-hot" id="pot3"></div>
+          <div class="flame"><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="readouts">
+          <div class="gauge"><div class="dial"><div class="needle" id="pNeedle"></div></div><div class="val" id="pVal">14.7 psi</div><div class="lbl">Pressure</div></div>
+          <div class="gauge"><div class="dial"><div class="needle" id="tNeedle"></div></div><div class="val" id="tVal">100°C</div><div class="lbl">Temperature</div></div>
+        </div>
+        <button id="reset">↺ Replay</button>
+        <p style="margin-top:1.2rem">Steam can't escape, so pressure builds. Higher pressure pushes back on the molecules, so the <b>boiling point rises</b> — water can reach ~<b>120°C (248°F)</b> before boiling.</p>
+        <p>That's why <b class="h">pressure cookers</b> cook faster: hotter water transfers heat into food much quicker.</p>
+        <div class="warn"><b class="h">⚠ Danger:</b> a sealed, overheated pot stores huge energy. If it suddenly opens, pressure drops, the superheated water flashes into steam all at once — an explosive release. That's why pressure cookers have safety valves.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="altitude">
+  <div class="wrap">
+    <div class="reveal" style="text-align:center;max-width:720px;margin:0 auto 2rem">
+      <div class="kicker">03 · Altitude</div>
+      <h2>Climb higher, boil cooler</h2>
+      <p>The air above you has weight. The higher you go, the less air is stacked on top — so <b class="c">atmospheric pressure drops</b>, and water boils at a <b class="h">lower temperature</b>.</p>
+    </div>
+    <div class="card reveal grid2">
+      <div>
+        <div class="mtn" id="mtn">
+          <svg viewBox="0 0 400 300" preserveAspectRatio="none">
+            <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8f3ff"/><stop offset=".25" stop-color="#5b6fae"/><stop offset="1" stop-color="#1a2552"/></linearGradient></defs>
+            <polygon points="0,300 120,170 170,200 290,20 400,300" fill="url(#g)"/>
+            <line x1="0" y1="299" x2="400" y2="299" stroke="#38e1ff" stroke-opacity=".4"/>
+          </svg>
+          <div class="potdot" id="potdot"><div></div></div>
+        </div>
+        <input type="range" id="alt" min="0" max="3" step="1" value="0" aria-label="Altitude">
+        <div class="stops"><span>Sea level</span><span>Denver</span><span>10k ft</span><span>Everest BC</span></div>
+      </div>
+      <div style="text-align:center">
+        <div class="lbl" id="place">Sea level · 0 ft</div>
+        <div class="big h" id="bp">100°C</div>
+        <div class="mono" id="bpf" style="color:var(--muted)">212°F</div>
+        <div class="readouts">
+          <div class="gauge"><div class="dial"><div class="needle" id="aNeedle"></div></div><div class="val" id="aVal">14.7 psi</div><div class="lbl">Air pressure</div></div>
+        </div>
+      </div>
+    </div>
+    <table class="reveal">
+      <tr><th>Location</th><th>Altitude</th><th>Pressure</th><th>Boils at</th></tr>
+      <tr><td>Sea level</td><td>0 ft</td><td>14.7 psi</td><td>100°C / 212°F</td></tr>
+      <tr><td>Denver</td><td>~7,000 ft</td><td>~11.3 psi</td><td>~92°C / 198°F</td></tr>
+      <tr><td>Mountain passes</td><td>~10,000 ft</td><td>~10.1 psi</td><td>~90°C / 194°F</td></tr>
+      <tr><td>Everest base camp</td><td>~17,600 ft</td><td>~7.3 psi</td><td>~82°C / 180°F</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="matters">
+  <div class="wrap">
+    <div class="reveal" style="text-align:center">
+      <div class="kicker">04 · Real life</div>
+      <h2>Why it matters</h2>
+    </div>
+    <div class="cards">
+      <div class="card reveal"><div class="emoji">🍝</div><h3>Pasta & eggs</h3><p>At altitude, boiling water is cooler, so food cooks slower. Recipes add time — or cooks reach for a pressure cooker.</p></div>
+      <div class="card reveal"><div class="emoji">✈️</div><h3>Airplanes</h3><p>Cabins are pressurized to feel like ~6,000–8,000 ft. Coffee on board is brewed with water that boils below 100°C.</p></div>
+      <div class="card reveal"><div class="emoji">🍵</div><h3>Tea on Everest</h3><p>Water boiling at ~82°C can't fully extract black tea. Your brew comes out weak, no matter how long it "boils".</p></div>
+      <div class="card reveal"><div class="emoji">🧪</div><h3>Vacuum chambers</h3><p>Pump out enough air and water boils at <b>room temperature</b> — bubbling furiously while still cool to the touch.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="close">
+  <div class="wrap reveal">
+    <div class="kicker" style="text-align:center">05 · Takeaway</div>
+    <blockquote>Boiling isn't about heat alone — it's about <em>the balance between molecular energy and the pressure pushing back.</em></blockquote>
+    <div class="cards" style="max-width:800px;margin:3rem auto 0">
+      <div class="card"><h3 class="c">Fun fact</h3><p>On Mars, air pressure is so low that liquid water would boil away at around 10°C or less.</p></div>
+      <div class="card"><h3 class="h">Fun fact</h3><p>Deep-sea hydrothermal vents shoot out water above 400°C — the crushing ocean pressure keeps it from boiling.</p></div>
+    </div>
+  </div>
+</section>
+<footer>Boiling Water Physics · an interactive explainer</footer>
+
+<script>
+// scroll reveal
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.15});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+// bubbles + steam
+function bubbles(pot,stage,rate,steam=true){
+  setInterval(()=>{
+    if(document.hidden)return;
+    const b=document.createElement('div');b.className='bubble';
+    const s=4+Math.random()*10;b.style.width=b.style.height=s+'px';
+    b.style.left=(10+Math.random()*80)+'%';b.style.animationDuration=(1+Math.random()*1.4)+'s';
+    pot.appendChild(b);setTimeout(()=>b.remove(),2600);
+    if(steam&&Math.random()<.5){
+      const st=document.createElement('div');st.className='steam';
+      st.style.left=(40+Math.random()*20)+'%';st.style.bottom='140px';
+      st.style.setProperty('--dx',(Math.random()*60-30)+'px');
+      stage.appendChild(st);setTimeout(()=>st.remove(),2700);
+    }
+  },rate);
+}
+bubbles(pot1,stage1,140);
+bubbles(pot2,stage2,160);
+
+// sealed pot simulation
+let t=0,sim;
+function runSealed(){
+  clearInterval(sim);t=0;
+  sim=setInterval(()=>{
+    t=Math.min(t+0.01,1);
+    const psi=14.7+t*15, temp=100+t*21;
+    pVal.textContent=psi.toFixed(1)+' psi';
+    tVal.textContent=temp.toFixed(0)+'°C';
+    pNeedle.style.transform=`rotate(${-80+t*150}deg)`;
+    tNeedle.style.transform=`rotate(${-80+t*150}deg)`;
+    tVal.style.color=temp>100.5?'var(--heat)':'';
+    if(Math.random()<t*.5){const b=document.createElement('div');b.className='bubble';b.style.width=b.style.height='5px';b.style.left=(10+Math.random()*80)+'%';b.style.animationDuration='1.8s';pot3.appendChild(b);setTimeout(()=>b.remove(),1900)}
+    if(t>=1)clearInterval(sim);
+  },60);
+}
+reset.onclick=runSealed;
+new IntersectionObserver(es=>{if(es[0].isIntersecting)runSealed()},{threshold:.4}).observe(stage3);
+
+// altitude
+const D=[
+ {p:'Sea level · 0 ft',psi:14.7,c:100,f:212,x:6,y:2},
+ {p:'Denver · ~7,000 ft',psi:11.3,c:92,f:198,x:30,y:40},
+ {p:'Mountain pass · ~10,000 ft',psi:10.1,c:90,f:194,x:58,y:55},
+ {p:'Everest base camp · ~17,600 ft',psi:7.3,c:82,f:180,x:70,y:85}];
+function setAlt(i){
+  const d=D[i];place.textContent=d.p;bp.textContent=d.c+'°C';bpf.textContent=d.f+'°F';
+  aVal.textContent=d.psi+' psi';aNeedle.style.transform=`rotate(${-80+(d.psi/14.7)*120}deg)`;
+  potdot.style.left=d.x+'%';potdot.style.bottom=d.y+'%';
+}
+alt.oninput=e=>setAlt(+e.target.value);setAlt(0);
+</script>
+</body>
+</html>
